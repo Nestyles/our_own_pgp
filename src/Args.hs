@@ -1,5 +1,5 @@
 module Args (
-    parseArgs, defaultArgs, handleError
+    parseArgs, defaultArgs, handleError, hexToArr
     ) where
 ;
 import Control.Exception
