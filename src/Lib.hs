@@ -1,8 +1,8 @@
 module Lib
     ( someFunc
     ) where
-import Data.Bits
-import Data.Int
+import Data.Bits ( Bits(xor) )
+import Data.Int ( Int8 )
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"

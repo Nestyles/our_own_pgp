@@ -1,11 +1,12 @@
 module Main (main) where
 
-import Lib
 import System.Environment (getArgs)
-import Args (parseArgs, handleError, defaultArgs)
+import Args (parseArgs, defaultArgs)
 
 main :: IO ()
 main = do
     args <- getArgs
     let parsedArgs = parseArgs args defaultArgs
-    print "Hello"
+    putStrLn "Message:"
+    hex1 <- getLine
+    putStrLn hex1
