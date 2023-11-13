@@ -1,11 +1,11 @@
 module Args (
-    parseArgs, defaultArgs, handleError, hexToArr
+    parseArgs, defaultArgs, handleError, hexToArr, Args (..)
     ) where
 ;
 import Control.Exception
 import System.Exit (exitWith, ExitCode (ExitFailure))
-import Data.Int ( Int8 )
 import Numeric (readHex)
+import Data.Word (Word8)
 
 data ExceptionType = WrongArg
                 | MissingRule
@@ -18,7 +18,7 @@ type CompType = String
 type IsClear = Bool
 type BlockMode = Bool
 type RsaOpts = (Int, Int)
-type Key = [Int8]
+type Key = [Word8]
 
 data Args = Args (Maybe CompType) (Maybe IsClear) (Maybe BlockMode) (Maybe RsaOpts) (Maybe Key)
 
@@ -38,12 +38,12 @@ splitStringByByte (x : y : xs) = [x, y] : splitStringByByte xs
 splitStringByByte [] = []
 splitStringByByte _ = throw WrongFormat
 
-pairToByte :: String -> Int8
+pairToByte :: String -> Word8
 pairToByte b = case readHex b of
     [(n, "")] -> n
     _ -> throw WrongArg
 
-hexToArr :: String -> [Int8]
+hexToArr :: String -> [Word8]
 hexToArr s = map pairToByte $ splitStringByByte s
 
 parseArg :: Args -> String -> Args

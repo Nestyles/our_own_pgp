@@ -2,12 +2,12 @@ module Lib
     ( someFunc
     ) where
 import Data.Bits ( Bits(xor) )
-import Data.Int ( Int8 )
+import Data.Word (Word8)
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"
 
-type Hexa = [Int8]
+type Hexa = [Word8]
 
 reverseKey :: Hexa -> Hexa
 reverseKey = reverse
