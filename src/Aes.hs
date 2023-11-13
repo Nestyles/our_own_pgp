@@ -20,7 +20,7 @@ shiftR n xs = drop len xs ++ take len xs
 shiftRows :: Matrix -> Matrix
 shiftRows = zipWith shiftL [0..]
 
-playRound :: Matrix -> String -> Matrix
+playRound :: Matrix -> Vector -> Matrix
 playRound key msg = shiftRows key
 
 sbox :: Word8 -> Word8
