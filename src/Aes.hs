@@ -1,9 +1,16 @@
 module Aes (playRound) where
 
 import Data.Word (Word8)
+import Matrix (Matrix, Vector)
 
-playRound :: [Word8] -> [Word8] -> [Word8]
-playRound key msg = msg
+subVecBytes :: Vector -> Vector
+subVecBytes = map sbox
+
+subBytes :: Matrix -> Matrix
+subBytes = map subVecBytes
+
+playRound :: Matrix -> String -> Matrix
+playRound key msg = subBytes key
 
 sbox :: Word8 -> Word8
 sbox 0x00 = 0x63

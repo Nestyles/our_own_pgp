@@ -1,4 +1,4 @@
-module Matrix (getMatrix) where
+module Matrix (getMatrix, Matrix, Vector) where
 import Data.List ( transpose )
 import Data.Word (Word8)
 
