@@ -9,8 +9,19 @@ subVecBytes = map sbox
 subBytes :: Matrix -> Matrix
 subBytes = map subVecBytes
 
+shiftL :: Int -> Vector -> Vector
+shiftL n xs = drop n xs ++ take n xs
+
+shiftR :: Int -> Vector -> Vector
+shiftR n xs = drop len xs ++ take len xs
+    where
+        len = length xs - n
+
+shiftRows :: Matrix -> Matrix
+shiftRows = zipWith shiftL [0..]
+
 playRound :: Matrix -> String -> Matrix
-playRound key msg = subBytes key
+playRound key msg = shiftRows key
 
 sbox :: Word8 -> Word8
 sbox 0x00 = 0x63
