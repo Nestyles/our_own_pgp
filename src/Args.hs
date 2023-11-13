@@ -1,15 +1,16 @@
 module Args (
-    parseArgs, defaultArgs, handleError, hexToArr, Args (..)
+    parseArgs, defaultArgs, checkBlock, handleError, hexToArr, Args (..)
     ) where
 ;
 import Control.Exception
 import System.Exit (exitWith, ExitCode (ExitFailure))
 import Numeric (readHex)
 import Data.Word (Word8)
+import System.IO (hPutStrLn, stderr)
 
 data ExceptionType = WrongArg
                 | MissingRule
-                | WrongFormat
+                | WrongBlock
                 deriving (Show)
 
 instance Exception ExceptionType
@@ -26,17 +27,24 @@ defaultArgs :: Args
 defaultArgs = Args Nothing Nothing Nothing Nothing Nothing
 
 handleError :: ExceptionType -> IO ()
-handleError WrongArg = putStrLn "Wrong argument format" >>
+handleError WrongArg = hPutStrLn stderr "Wrong argument format" >>
     exitWith (ExitFailure 84)
-handleError MissingRule = putStrLn "You need to specify all arguments"
+handleError MissingRule = hPutStrLn stderr "You need to specify all arguments"
     >> exitWith (ExitFailure 84)
-handleError WrongFormat = putStrLn "The file doesn't have the right format"
+handleError WrongBlock = hPutStrLn stderr "You specified BlockMode but wrong input"
     >> exitWith (ExitFailure 84)
+
+checkBlock :: Args -> [Word8] -> IO ()
+checkBlock (Args _ _ (Just False) _ _) _ = return ()
+checkBlock (Args _ _ _ _ (Just key)) msg
+    | length key == length msg = return ()
+    | otherwise = throw WrongBlock
+checkBlock _ _ = return ()
 
 splitStringByByte :: String -> [String]
 splitStringByByte (x : y : xs) = [x, y] : splitStringByByte xs
 splitStringByByte [] = []
-splitStringByByte _ = throw WrongFormat
+splitStringByByte _ = throw WrongArg
 
 pairToByte :: String -> Word8
 pairToByte b = case readHex b of
