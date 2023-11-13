@@ -1,7 +1,7 @@
 module Main (main) where
 
 import System.Environment (getArgs)
-import Args (parseArgs, defaultArgs, hexToArr, Args (..))
+import Args (parseArgs, defaultArgs, hexToArr, Args (..), checkBlock)
 import Matrix (getMatrix)
 import Aes (playRound)
 import Lib (xorKey)
@@ -17,4 +17,5 @@ main = do
     args <- getArgs
     let parsedArgs = parseArgs args defaultArgs
     hexMessage <- getLine
+    checkBlock parsedArgs (hexToArr hexMessage)
     chooseInstruction parsedArgs (hexToArr hexMessage)
