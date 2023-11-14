@@ -114,5 +114,12 @@ mixColumnsInv
     ]]
 mixColumnsInv _ = throw WrongMix
 
-playRound :: Matrix -> Vector -> Matrix
-playRound key msg = shiftRows key
+xorColumn :: Vector -> Vector -> Vector
+xorColumn = zipWith xor
+
+addRoundKey :: Matrix -> Matrix -> Matrix
+addRoundKey = zipWith xorColumn
+
+-- msg should be separated into blocks
+playRound :: Matrix -> Matrix -> Matrix
+playRound key msg = shiftRows msg
