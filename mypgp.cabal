@@ -28,6 +28,7 @@ library
       Aes
       Args
       Lib
+      Lookup
       Matrix
   other-modules:
       Paths_mypgp
