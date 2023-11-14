@@ -1,7 +1,7 @@
-module Aes (playRound, mixColumns) where
+module Aes (playRound) where
 
 import Matrix (Matrix, Vector)
-import Lookup (mul3, mul2, sboxRev, sbox)
+import Lookup (mul3, mul2, sboxRev, sbox, mul14, mul11, mul13, mul9)
 import Data.Bits (Bits(xor))
 import Control.Exception (Exception, throw)
 
@@ -30,6 +30,12 @@ shiftRight :: Int -> Vector -> Vector
 shiftRight n xs = drop len xs ++ take len xs
     where
         len = length xs - n
+
+shiftRows :: Matrix -> Matrix
+shiftRows = zipWith shiftLeft [0..]
+
+shiftRowsInv :: Matrix -> Matrix
+shiftRowsInv = zipWith shiftRight [0..]
 
 -- fonction maudite https://hackage.haskell.org/package/base-4.19.0.0/docs/Data-Bits.html
 -- gmul :: Word8 -> Word8 -> Word8
@@ -76,8 +82,37 @@ mixColumns
     ]]
 mixColumns _ = throw WrongMix
 
-shiftRows :: Matrix -> Matrix
-shiftRows = zipWith shiftLeft [0..]
+mixColumnsInv :: Matrix -> Matrix
+mixColumnsInv
+    [[i00, i01, i02, i03],
+    [i04, i05, i06, i07],
+    [i08, i09, i10, i11],
+    [i12, i13, i14, i15]] =
+    [[
+        mul14 i00 `xor` mul11 i01 `xor` mul13 i02 `xor` mul9 i03,
+        mul9 i00 `xor` mul14 i01 `xor` mul11 i02 `xor` mul13 i03,
+        mul13 i00 `xor` mul9 i01 `xor` mul14 i02 `xor` mul11 i03,
+        mul11 i00 `xor` mul13 i01 `xor` mul9 i02 `xor` mul14 i03
+    ],
+    [
+        mul14 i04 `xor` mul11 i05 `xor` mul13 i06 `xor` mul9 i07,
+        mul9 i04 `xor` mul14 i05 `xor` mul11 i06 `xor` mul13 i07,
+        mul13 i04 `xor` mul9 i05 `xor` mul14 i06 `xor` mul11 i07,
+        mul11 i04 `xor` mul13 i05 `xor` mul9 i06 `xor` mul14 i07
+    ],
+    [
+        mul14 i08 `xor` mul11 i09 `xor` mul13 i10 `xor` mul9 i11,
+        mul9 i08 `xor` mul14 i09 `xor` mul11 i10 `xor` mul13 i11,
+        mul13 i08 `xor` mul9 i09 `xor` mul14 i10 `xor` mul11 i11,
+        mul11 i08 `xor` mul13 i09 `xor` mul9 i10 `xor` mul14 i11
+    ],
+    [
+        mul14 i12 `xor` mul11 i13 `xor` mul13 i14 `xor` mul9 i15,
+        mul9 i12 `xor` mul14 i13 `xor` mul11 i14 `xor` mul13 i15,
+        mul13 i12 `xor` mul9 i13 `xor` mul14 i14 `xor` mul11 i15,
+        mul11 i12 `xor` mul13 i13 `xor` mul9 i14 `xor` mul14 i15
+    ]]
+mixColumnsInv _ = throw WrongMix
 
 playRound :: Matrix -> Vector -> Matrix
 playRound key msg = shiftRows key
