@@ -3,7 +3,7 @@ module Main (main) where
 import System.Environment (getArgs)
 import Args (parseArgs, defaultArgs, hexToArr, Args (..), checkBlock)
 import Matrix (getMatrix)
-import Aes (encryptAes)
+import Aes (encryptAes, decryptAes)
 import Lib (xorKey)
 import Data.Word (Word8)
 import Text.Printf (printf)
@@ -12,7 +12,8 @@ printMatrix :: [[Word8]] -> IO ()
 printMatrix = mapM_ $ mapM_ (printf "%02x")
 
 chooseInstruction :: Args -> [Word8] -> IO ()
-chooseInstruction (Args (Just "aes") (Just clear) block Nothing (Just key)) msg = printMatrix $ encryptAes (getMatrix key 4) (getMatrix msg 4)
+chooseInstruction (Args (Just "aes") (Just True) block Nothing (Just key)) msg = printMatrix $ encryptAes (getMatrix key 4) (getMatrix msg 4)
+chooseInstruction (Args (Just "aes") (Just False) block Nothing (Just key)) msg = printMatrix $ decryptAes (getMatrix key 4) (getMatrix msg 4)
 chooseInstruction (Args (Just "xor") _ block Nothing (Just key)) msg = mapM_ (printf "%02x") $ xorKey key msg msg
 
 main :: IO ()
