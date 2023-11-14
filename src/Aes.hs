@@ -1,9 +1,10 @@
-module Aes (playRound) where
+module Aes (encryptAes) where
 
 import Matrix (Matrix, Vector)
 import Lookup (mul3, mul2, sboxRev, sbox, mul14, mul11, mul13, mul9)
 import Data.Bits (Bits(xor))
 import Control.Exception (Exception, throw)
+import Data.Foldable (Foldable(fold))
 
 data AesException
   = WrongMix
@@ -120,6 +121,17 @@ xorColumn = zipWith xor
 addRoundKey :: Matrix -> Matrix -> Matrix
 addRoundKey = zipWith xorColumn
 
--- msg should be separated into blocks
-playRound :: Matrix -> Matrix -> Matrix
-playRound key msg = shiftRows msg
+playOneEncRound :: Matrix -> Matrix -> Matrix
+playOneEncRound key msg = add
+    where
+        sub = subBytes msg
+        shift = shiftRows sub
+        mix = mixColumns shift
+        add = addRoundKey mix key
+
+encryptAes :: Matrix -> Matrix -> Matrix
+encryptAes key msg = lastRound
+    where
+        firstAdd = addRoundKey key msg
+        afterRounds = iterate (playOneEncRound key) firstAdd !! 10
+        lastRound = addRoundKey key $ shiftRows $ subBytes afterRounds

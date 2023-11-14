@@ -3,13 +3,16 @@ module Main (main) where
 import System.Environment (getArgs)
 import Args (parseArgs, defaultArgs, hexToArr, Args (..), checkBlock)
 import Matrix (getMatrix)
-import Aes (playRound)
+import Aes (encryptAes)
 import Lib (xorKey)
 import Data.Word (Word8)
 import Text.Printf (printf)
 
+printMatrix :: [[Word8]] -> IO ()
+printMatrix = mapM_ $ mapM_ (printf "%02x")
+
 chooseInstruction :: Args -> [Word8] -> IO ()
-chooseInstruction (Args (Just "aes") (Just clear) block Nothing (Just key)) msg = print $ playRound (getMatrix key 4) msg
+chooseInstruction (Args (Just "aes") (Just clear) block Nothing (Just key)) msg = printMatrix $ encryptAes (getMatrix key 4) (getMatrix msg 4)
 chooseInstruction (Args (Just "xor") _ block Nothing (Just key)) msg = mapM_ (printf "%02x") $ xorKey key msg msg
 
 main :: IO ()
