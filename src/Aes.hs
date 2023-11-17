@@ -1,12 +1,15 @@
-module Aes (encryptAes, decryptAes) where
+module Aes (encryptAes, decryptAes, keyExpansion) where
 
 import Matrix (Matrix, Vector)
-import Lookup (mul3, mul2, sboxRev, sbox, mul14, mul11, mul13, mul9)
+import Lookup (mul3, mul2, sboxRev, sbox, mul14, mul11, mul13, mul9, rcon)
 import Data.Bits (Bits(xor))
 import Control.Exception (Exception, throw)
+import Data.Word (Word8)
 
 data AesException
   = WrongMix
+    | WrongRcon
+    | WrongExpansion
   deriving (Show)
 
 instance Exception AesException
@@ -117,6 +120,31 @@ mixColumnsInv _ = throw WrongMix
 xorColumn :: Vector -> Vector -> Vector
 xorColumn = zipWith xor
 
+applyRcon :: Word8 -> Vector -> Vector
+applyRcon i [o, t, th, f] = [o `xor` rcon i, t, th, f]
+applyRcon _ _ = throw WrongRcon
+
+keyExpansionCore :: Word8 -> Vector -> Vector
+keyExpansionCore i m = rc
+    where
+        shifted = shiftLeft 1 m
+        sboxed = subVecBytes shifted
+        rc = applyRcon i sboxed
+
+keyExpansionLoop :: Word8 -> Matrix -> Matrix
+keyExpansionLoop i m = tail m ++ [newVec]
+    where
+        firstVec :: Vector
+        firstVec = head m
+        newVec = firstVec `xorColumn` keyExpansionCore i (last m)
+
+keyExpansion :: Matrix -> [Matrix]
+keyExpansion m = looper 1 m
+    where
+        looper :: Word8 -> Matrix -> [Matrix]
+        looper 10 _ = []
+        looper i ma = keyExpansionLoop i m : looper (i + 1) ma
+
 addRoundKey :: Matrix -> Matrix -> Matrix
 addRoundKey = zipWith xorColumn
 
@@ -132,7 +160,7 @@ encryptAes :: Matrix -> Matrix -> Matrix
 encryptAes key msg = lastRound
     where
         firstAdd = addRoundKey key msg
-        afterRounds = iterate (playOneEncRound key) firstAdd !! 10
+        afterRounds = iterate (playOneEncRound key) firstAdd !! 9
         lastRound = addRoundKey key $ shiftRows $ subBytes afterRounds
 
 playOneDecRound :: Matrix -> Matrix -> Matrix
@@ -147,5 +175,5 @@ decryptAes :: Matrix -> Matrix -> Matrix
 decryptAes key msg = lastRound
     where
         firstAdd = addRoundKey key msg
-        afterRounds = iterate (playOneDecRound key) firstAdd !! 10
+        afterRounds = iterate (playOneDecRound key) firstAdd !! 9
         lastRound = addRoundKey key $ subBytesRev $ shiftRowsInv afterRounds
