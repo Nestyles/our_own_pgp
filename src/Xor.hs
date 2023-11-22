@@ -1,4 +1,4 @@
-module Lib
+module Xor
     ( xorKey,
     ) where
 import Data.Bits ( Bits(xor) )
