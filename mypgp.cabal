@@ -30,6 +30,7 @@ library
       Lib
       Lookup
       Matrix
+      Rsa
   other-modules:
       Paths_mypgp
   autogen-modules:
