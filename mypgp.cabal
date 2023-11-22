@@ -27,10 +27,10 @@ library
   exposed-modules:
       Aes
       Args
-      Lib
       Lookup
       Matrix
       Rsa
+      Xor
   other-modules:
       Paths_mypgp
   autogen-modules:

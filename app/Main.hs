@@ -4,7 +4,7 @@ import System.Environment (getArgs)
 import Args (parseArgs, defaultArgs, hexToArr, Args (..), checkBlock)
 import Matrix (getMatrix)
 import Aes (encryptAes, decryptAes)
-import Lib (xorKey)
+import Xor (xorKey)
 import Data.Word (Word8)
 import Text.Printf (printf)
 
