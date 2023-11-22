@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 module Main (main) where
 
 import System.Environment (getArgs)
@@ -19,7 +20,7 @@ chooseInstruction (Args (Just "xor") _ block Nothing (Just key)) msg = mapM_ (pr
 main :: IO ()
 main = do
     args <- getArgs
-    let parsedArgs = parseArgs args defaultArgs
+    let !parsedArgs = parseArgs args defaultArgs -- ! = bang pattern to force evaluation
     hexMessage <- getLine
     checkBlock parsedArgs (hexToArr hexMessage)
     chooseInstruction parsedArgs (hexToArr hexMessage)
