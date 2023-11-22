@@ -4,11 +4,14 @@ module Rsa
       getD,
       rsaCryption,
       rsa,
-      phi
+      phi,
+      isPrime,
+      printRsa
       -- getLastDivider,
       -- getPrimeFactor
     ) where
 import Prelude
+import Text.Printf (printf)
 
 isPrimeLoop :: Int -> Int -> Int -> Bool
 isPrimeLoop i maxI n
@@ -26,18 +29,6 @@ isPrime n
 
 phi :: Int -> Int -> Int
 phi p q = (p - 1) * (q - 1)
-
--- getLastDivider :: Int -> Int -> Int
--- getLastDivider n i
---   | (n `mod` i) == 0 = getLastDivider (n `div` i) i
---   | otherwise = n
-
--- getPrimeFactor :: Int -> Int -> [Int]
--- getPrimeFactor n i
---   | (i * i) >= n && n > 1 = [n]
---   | (i * i) >= n = []
---   | (n `mod` i) == 0 = i : getPrimeFactor (getLastDivider n i) (i + 1)
---   | otherwise = getPrimeFactor n (i + 1)
 
 getCoprimeList :: Int -> Int -> [Int]
 getCoprimeList x i
@@ -70,3 +61,6 @@ rsa a b = do
   let e = getE coprimeList p
   let d = getD 0 e p
   ((e, n), (d, n))
+
+printRsa :: ((Int, Int), (Int, Int)) -> IO ()
+printRsa ((e, n1), (d, n2)) = printf "public key: %x-%x\nprivate key: %x-%x\n" e n1 d n2
