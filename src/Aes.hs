@@ -34,6 +34,37 @@ shiftRight n xs = drop len xs ++ take len xs
     where
         len = length xs - n
 
+-- shiftRows :: [[a]] -> [[a]]
+-- shiftRows state = zipWith shiftRow [0..3] state
+--   where
+--     shiftRow i row = take 4 $ drop i (cycle row)
+
+rotateRows :: Matrix -> Matrix
+rotateRows
+    [[i00, i01, i02, i03],
+    [i04, i05, i06, i07],
+    [i08, i09, i10, i11],
+    [i12, i13, i14, i15]] = [
+        [i00, i05, i10, i15],
+        [i04, i09, i14, i03],
+        [i08, i13, i02, i07],
+        [i12, i01, i06, i11]
+    ]
+rotateRows _ = throw WrongMix
+
+rotateRowsInv :: Matrix -> Matrix
+rotateRowsInv
+    [[i00, i05, i10, i15],
+    [i04, i09, i14, i03],
+    [i08, i13, i02, i07],
+    [i12, i01, i06, i11]] = [
+        [i00, i01, i02, i03],
+        [i04, i05, i06, i07],
+        [i08, i09, i10, i11],
+        [i12, i13, i14, i15]
+    ]
+rotateRowsInv _ = throw WrongMix
+
 shiftRows :: Matrix -> Matrix
 shiftRows = zipWith shiftLeft [0..]
 
@@ -157,28 +188,36 @@ playOneEncRound :: Matrix -> Matrix -> Matrix
 playOneEncRound key msg = add
     where
         sub = subBytes msg
-        shift = shiftRows sub
+        shift = rotateRows sub
         mix = mixColumns shift
         add = addRoundKey mix key
 
 encryptAes :: Matrix -> Matrix -> Matrix
 encryptAes key msg = lastRound
     where
-        firstAdd = addRoundKey key msg
-        afterRounds = iterate (playOneEncRound key) firstAdd !! 9
-        lastRound = addRoundKey key $ shiftRows $ subBytes afterRounds
+        expandedKey = keyExpansion key
+        firstAdd = addRoundKey (head expandedKey) msg
+        afterRounds = looper 1 firstAdd expandedKey
+        lastRound = addRoundKey (expandedKey !! 10) $ rotateRows $ subBytes afterRounds
+        looper :: Int -> Matrix -> [Matrix] -> Matrix
+        looper 10 m _ = m
+        looper i m keys = looper (i + 1) (playOneEncRound (keys !! i) m) expandedKey
 
 playOneDecRound :: Matrix -> Matrix -> Matrix
-playOneDecRound key msg = add
+playOneDecRound key msg = mix
     where
-        shift = shiftRowsInv msg
+        shift = rotateRowsInv msg
         sub = subBytesRev shift
-        mix = mixColumnsInv sub
-        add = addRoundKey mix key
+        add = addRoundKey sub key
+        mix = mixColumnsInv add
 
 decryptAes :: Matrix -> Matrix -> Matrix
 decryptAes key msg = lastRound
     where
-        firstAdd = addRoundKey key msg
-        afterRounds = iterate (playOneDecRound key) firstAdd !! 9
-        lastRound = addRoundKey key $ subBytesRev $ shiftRowsInv afterRounds
+        expandedKey = reverse $ keyExpansion key
+        firstAdd = addRoundKey (head expandedKey) msg
+        afterRounds = looper 1 firstAdd expandedKey
+        lastRound = addRoundKey (expandedKey !! 10) $ subBytesRev $ rotateRowsInv afterRounds
+        looper :: Int -> Matrix -> [Matrix] -> Matrix
+        looper 10 m _ = m
+        looper i m keys = looper (i + 1) (playOneDecRound (keys !! i) m) expandedKey
