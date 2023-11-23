@@ -12,6 +12,23 @@ import Text.Printf (printf)
 printMatrix :: [[Word8]] -> IO ()
 printMatrix = mapM_ $ mapM_ (printf "%02x")
 
+convertStreamMode :: [Word8] -> [Word8] -> Int -> [[Word8]]
+convertStreamMode _ [] _ = []
+convertStreamMode key message keySize = padded : convertStreamMode key remaining keySize
+    where
+        (chunk, remaining) = splitAt keySize message
+        padded = chunk ++ replicate (keySize - length chunk) 0
+
+getArgsKey :: Args -> [Word8]
+getArgsKey (Args _ _ _ _ (Just key)) = key
+getArgsKey _ = []
+
+playStreamMode :: Args -> [Word8] -> IO ()
+playStreamMode args message = mapM_ (chooseInstruction args) messageStream
+    where
+        key = getArgsKey args
+        messageStream = convertStreamMode key message (length key)
+
 chooseInstruction :: Args -> [Word8] -> IO ()
 chooseInstruction (Args (Just "aes") (Just True) block Nothing (Just key)) msg = printMatrix $ encryptAes (getMatrix key 4) (getMatrix msg 4)
 chooseInstruction (Args (Just "aes") (Just False) block Nothing (Just key)) msg = printMatrix $ decryptAes (getMatrix key 4) (getMatrix msg 4)
@@ -23,4 +40,4 @@ main = do
     let !parsedArgs = parseArgs args defaultArgs -- ! = bang pattern to force evaluation
     hexMessage <- getLine
     checkBlock parsedArgs (hexToArr hexMessage)
-    chooseInstruction parsedArgs (hexToArr hexMessage)
+    playStreamMode parsedArgs (hexToArr hexMessage)

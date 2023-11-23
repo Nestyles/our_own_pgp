@@ -11,6 +11,8 @@ import System.IO (hPutStrLn, stderr)
 data ExceptionType = WrongArg
                 | MissingRule
                 | WrongBlock
+                | WrongPairToByte
+                | WrongSplitString
                 deriving (Show)
 
 instance Exception ExceptionType
@@ -19,6 +21,7 @@ type CompType = String
 type IsClear = Bool
 type BlockMode = Bool
 type RsaOpts = (Int, Int)
+type RsaKeys = ([Word8], [Word8])
 type Key = [Word8]
 
 data Args = Args (Maybe CompType) (Maybe IsClear) (Maybe BlockMode) (Maybe RsaOpts) (Maybe Key)
@@ -35,7 +38,7 @@ handleError WrongBlock = hPutStrLn stderr "You specified BlockMode but wrong inp
     >> exitWith (ExitFailure 84)
 
 checkBlock :: Args -> [Word8] -> IO ()
-checkBlock (Args _ _ (Just False) _ _) _ = return ()
+checkBlock (Args _ _ Nothing _ _) _ = return ()
 checkBlock (Args _ _ _ _ (Just key)) msg
     | length key == length msg = return ()
     | otherwise = throw WrongBlock
@@ -44,12 +47,12 @@ checkBlock _ _ = return ()
 splitStringByByte :: String -> [String]
 splitStringByByte (x : y : xs) = [x, y] : splitStringByByte xs
 splitStringByByte [] = []
-splitStringByByte _ = throw WrongArg
+splitStringByByte _ = throw WrongSplitString
 
 pairToByte :: String -> Word8
 pairToByte b = case readHex b of
     [(n, "")] -> n
-    _ -> throw WrongArg
+    _ -> throw WrongSplitString
 
 hexToArr :: String -> [Word8]
 hexToArr s = map pairToByte $ splitStringByByte s
@@ -65,10 +68,9 @@ parseArg _ _ = throw WrongArg
 
 parseArgs :: [String] -> Args -> Args
 parseArgs ("-g": pr: q: xs) (Args n c p _ k) = parseArgs xs (Args n c p (Just (read pr :: Int, read q :: Int)) k)
-parseArgs [x] (Args (Just n) (Just c) (Just p) r Nothing) = Args (Just n) (Just c) (Just p) r (Just (hexToArr x))
+parseArgs [x] (Args (Just n) (Just c) b r Nothing) = Args (Just n) (Just c) b r (Just (hexToArr x))
 parseArgs (x: xs) arg = parseArgs xs (parseArg arg x)
 parseArgs _ (Args Nothing _ _ _ _) = throw MissingRule
 parseArgs _ (Args _ Nothing _ _ _) = throw MissingRule
-parseArgs _ (Args _ _ Nothing _ _) = throw MissingRule
 parseArgs _ (Args (Just "rsa") _ _ Nothing _) = throw MissingRule
 parseArgs _ arg = arg
