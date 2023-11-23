@@ -67,8 +67,8 @@ parseArg (Args n c Nothing r rk k) "-b" = Args n c (Just True) r rk k
 parseArg _ _ = throw WrongArg
 
 parseArgs :: [String] -> Args -> Args
-parseArgs ("-g": pr: q: xs) (Args n c p _ rk k) = parseArgs xs (Args n c p (Just (read pr :: Int, read q :: Int)) rk k)
-parseArgs [x] (Args (Just n) (Just c) b r Nothing Nothing) = Args (Just n) (Just c) b r Nothing (Just (hexToArr x)) -- Should parse rsa keys instead of Nothing
+parseArgs ("-g": pr: q: xs) (Args n c p _ rk k) = parseArgs xs (Args n c p (Just (read pr :: Int, read q :: Int)) rk k) -- Manage rsa pair
+parseArgs [x] (Args (Just "rsa") (Just c) b r Nothing Nothing) = Args (Just "rsa") (Just c) b r Nothing (Just (hexToArr x)) -- Should parse rsa keys instead of Nothing
 parseArgs [x] (Args (Just n) (Just c) b r rk Nothing) = Args (Just n) (Just c) b r rk (Just (hexToArr x))
 parseArgs (x: xs) arg = parseArgs xs (parseArg arg x)
 parseArgs _ (Args Nothing _ _ _ _ _ ) = throw MissingRule
