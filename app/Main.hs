@@ -20,7 +20,7 @@ convertStreamMode key message keySize = padded : convertStreamMode key remaining
         padded = chunk ++ replicate (keySize - length chunk) 0
 
 getArgsKey :: Args -> [Word8]
-getArgsKey (Args _ _ _ _ (Just key)) = key
+getArgsKey (Args _ _ _ _ _ (Just key)) = key
 getArgsKey _ = []
 
 playStreamMode :: Args -> [Word8] -> IO ()
@@ -30,9 +30,9 @@ playStreamMode args message = mapM_ (chooseInstruction args) messageStream
         messageStream = convertStreamMode key message (length key)
 
 chooseInstruction :: Args -> [Word8] -> IO ()
-chooseInstruction (Args (Just "aes") (Just True) block Nothing (Just key)) msg = printMatrix $ encryptAes (getMatrix key 4) (getMatrix msg 4)
-chooseInstruction (Args (Just "aes") (Just False) block Nothing (Just key)) msg = printMatrix $ decryptAes (getMatrix key 4) (getMatrix msg 4)
-chooseInstruction (Args (Just "xor") _ block Nothing (Just key)) msg = mapM_ (printf "%02x") $ xorKey key msg msg
+chooseInstruction (Args (Just "aes") (Just True) _ Nothing _ (Just key)) msg = printMatrix $ encryptAes (getMatrix key 4) (getMatrix msg 4)
+chooseInstruction (Args (Just "aes") (Just False) _ Nothing _ (Just key)) msg = printMatrix $ decryptAes (getMatrix key 4) (getMatrix msg 4)
+chooseInstruction (Args (Just "xor") _ block Nothing _ (Just key)) msg = mapM_ (printf "%02x") $ xorKey key msg msg
 
 main :: IO ()
 main = do
