@@ -1,4 +1,4 @@
-module Aes (encryptAes, decryptAes, keyExpansion) where
+module Aes (encryptAes, decryptAes) where
 
 import Matrix (Matrix, Vector)
 import Lookup (mul3, mul2, sboxRev, sbox, mul14, mul11, mul13, mul9, rcon)
@@ -132,18 +132,23 @@ keyExpansionCore i m = rc
         rc = applyRcon i sboxed
 
 keyExpansionLoop :: Word8 -> Matrix -> Matrix
-keyExpansionLoop i m = tail m ++ [newVec]
+keyExpansionLoop i m = [w4, w5, w6, w7]
     where
         firstVec :: Vector
         firstVec = head m
-        newVec = firstVec `xorColumn` keyExpansionCore i (last m)
+        w4 = firstVec `xorColumn` keyExpansionCore i (last m)
+        w5 = w4 `xorColumn` (m !! 1)
+        w6 = w5 `xorColumn` (m !! 2)
+        w7 = w6 `xorColumn` (m !! 3)
 
 keyExpansion :: Matrix -> [Matrix]
-keyExpansion m = looper 1 m
+keyExpansion m = m : looper 1 m
     where
         looper :: Word8 -> Matrix -> [Matrix]
-        looper 10 _ = []
-        looper i ma = keyExpansionLoop i m : looper (i + 1) ma
+        looper 11 _ = []
+        looper i ma = new : looper (i + 1) new
+            where
+                new = keyExpansionLoop i ma
 
 addRoundKey :: Matrix -> Matrix -> Matrix
 addRoundKey = zipWith xorColumn
