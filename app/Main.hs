@@ -2,8 +2,9 @@
 module Main (main) where
 
 import System.Environment (getArgs)
-import Args (parseArgs, defaultArgs, hexToArr, Args (..), checkBlock)
+import Args (parseArgs, defaultArgs, hexToArr, Args (..), checkBlock, getRsaKeys)
 import Matrix (getMatrix)
+import Rsa (printRsa, rsaCryption)
 import Aes (encryptAes, decryptAes)
 import Xor (xorKey)
 import Data.Word (Word8)
@@ -40,6 +41,8 @@ chooseInstruction :: Args -> [Word8] -> IO ()
 chooseInstruction (Args (Just "aes") (Just True) _ Nothing _ (Just key)) msg = printMatrix $ encryptAes (getMatrix key 4) (getMatrix msg 4)
 chooseInstruction (Args (Just "aes") (Just False) _ Nothing _ (Just key)) msg = printMatrix $ decryptAes (getMatrix key 4) (getMatrix msg 4)
 chooseInstruction (Args (Just "xor") _ block Nothing _ (Just key)) msg = mapM_ (printf "%02x") $ xorKey key msg msg
+-- chooseInstruction (Args (Just "rsa") (Just True) _ Nothing (Just key) _) msg = printRsa $ rsaCryption key msg
+-- chooseInstruction (Args (Just "rsa") (Just True) _ Nothing _ (Just key)) msg = printRsa $ rsa p q
 
 main :: IO ()
 main = do

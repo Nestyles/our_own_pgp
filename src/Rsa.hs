@@ -81,18 +81,19 @@ stringToHex str = strToInt reverseStr
 hexToString :: Integer -> String
 hexToString hex = reverseString $ showHex hex ""
 
--- modpow :: Integer -> Integer -> Integer -> Integer -> Integer -> Integer
--- modpow b e m c e'
---   | e' < e = modpow b e m newC (e' + 1)
---   | otherwise = newC
---     where
---       newC = (b * c) `mod` m
+modpow :: Integer -> Integer -> Integer -> Integer -> Integer -> Integer
+modpow b e m c e'
+  | e' < e = modpow b e m newC (e' + 1)
+  | otherwise = newC
+    where
+      newC = (b * c) `mod` m
 
 rsaCryption :: RsaKeys -> Integer -> Integer
 rsaCryption (_, n) m
   | m >= n = throw WrongMessage
   | m < 0 = throw WrongMessage
-rsaCryption (e, n) m = (m ^ e) `mod` n
+-- rsaCryption (e, n) m = (m ^ e) `mod` n
+rsaCryption (e, n) m = modpow m e n 1 0
 
 rsa :: Integer -> Integer -> (RsaKeys, RsaKeys)
 rsa p q = do
