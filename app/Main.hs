@@ -41,18 +41,18 @@ chooseInstruction :: Args -> [Word8] -> IO ()
 chooseInstruction (Args (Just "aes") (Just True) _ Nothing _ (Just key)) msg = printMatrix $ encryptAes (getMatrix key 4) (getMatrix msg 4)
 chooseInstruction (Args (Just "aes") (Just False) _ Nothing _ (Just key)) msg = printMatrix $ decryptAes (getMatrix key 4) (getMatrix msg 4)
 chooseInstruction (Args (Just "xor") _ block Nothing _ (Just key)) msg = mapM_ (printf "%02x") $ xorKey key msg msg
-chooseInstruction (Args (Just "pgp") (Just True) block Nothing _ (Just key)) msg = do
+chooseInstruction (Args (Just "pgp") (Just True) block Nothing (Just rsaKey) _) msg = do
     randomKey <- generateKey
     printMatrix $ encryptAes (getMatrix randomKey 4) (getMatrix msg 4)
-    let encryptedKey = randomKey -- should call rsa encrypt with randomKey
-    putStr "\nEncrypted key: "
+    let encryptedKey = randomKey -- should call rsa encrypt on randomKey with rsaKey
+    putStr "\n"
     printKey encryptedKey
         where
             printKey = mapM_ (printf "%02x")
-chooseInstruction (Args (Just "pgp") (Just False) block Nothing _ (Just key)) msg = do
-    printMatrix $ decryptAes (getMatrix keyDecryptedRsa 4) (getMatrix msg 4)
-        where
-            keyDecryptedRsa = key -- should call rsa decrypt with key
+chooseInstruction (Args (Just "pgp") (Just False) block Nothing (Just rsaKey) _) msg = do
+    encryptedKey <- getLine
+    let decryptKey = encryptedKey -- should call rsa decrypt on encrypted key with rsaKey
+    printMatrix $ decryptAes (getMatrix decryptKey 4) (getMatrix msg 4)
 -- chooseInstruction (Args (Just "rsa") (Just True) _ Nothing (Just key) _) msg = printRsa $ rsaCryption key msg
 -- chooseInstruction (Args (Just "rsa") (Just True) _ Nothing _ (Just key)) msg = printRsa $ rsa p q
 
