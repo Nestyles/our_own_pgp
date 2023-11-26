@@ -10,11 +10,11 @@ import Data.Word (Word8)
 import Text.Printf (printf)
 import System.Random
 
-generateKeys :: IO [Word8]
-generateKeys = do
+generateKey :: IO [Word8]
+generateKey = do
   gen <- newStdGen
   let keyBytes = take 16 $ randoms gen :: [Word8]
-  return $ map fromIntegral keyBytes
+  return keyBytes
 
 printMatrix :: [[Word8]] -> IO ()
 printMatrix = mapM_ $ mapM_ (printf "%02x")
