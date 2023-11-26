@@ -46,6 +46,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - mypgp
+    - random
 
 tests:
   mypgp-test:
@@ -57,3 +58,4 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - mypgp
+    - random
