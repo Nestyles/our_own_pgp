@@ -45,17 +45,17 @@ chooseInstruction (Args (Just "xor") _ block Nothing _ (Just key)) msg = mapM_ (
 chooseInstruction (Args (Just "pgp") (Just True) block Nothing (Just rsaKey) _) msg = do
     randomKey <- generateKey
     printMatrix $ encryptAes (getMatrix randomKey 4) (getMatrix msg 4)
-    let encryptedKey = randomKey -- should call rsa encrypt on randomKey with rsaKey
+    let encryptedKey = hexToArr $ hexToString $ rsaCryption rsaKey $ stringToHex $ concat $ map (\x -> showHex x "") randomKey -- should call rsa encrypt on randomKey with rsaKey
     putStr "\n"
     printKey encryptedKey
         where
             printKey = mapM_ (printf "%02x")
 chooseInstruction (Args (Just "pgp") (Just False) block Nothing (Just rsaKey) _) msg = do
     encryptedKey <- getLine
-    let decryptKey = encryptedKey -- should call rsa decrypt on encrypted key with rsaKey
+    let decryptKey = hexToArr $ hexToString $ rsaCryption rsaKey $ stringToHex encryptedKey -- should call rsa decrypt on encrypted key with rsaKey
     printMatrix $ decryptAes (getMatrix decryptKey 4) (getMatrix msg 4)
 chooseInstruction (Args (Just "rsa") (Just True) _ (Just (p, q)) Nothing _) _ = printRsa $ rsa p q
-chooseInstruction (Args (Just "rsa") (Just True) _ Nothing (Just key) _) msg = print $ hexToString $ rsaCryption key $ stringToHex $ concat $ map (\x -> showHex x "") msg
+chooseInstruction (Args (Just "rsa") (Just True) _ Nothing (Just rsaKey) _) msg = print $ hexToString $ rsaCryption rsaKey $ stringToHex $ concat $ map (\x -> showHex x "") msg
 
 main :: IO ()
 main = do
