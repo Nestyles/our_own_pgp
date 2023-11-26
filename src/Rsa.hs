@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use even" #-}
 module Rsa
     (
       getE,
@@ -9,7 +11,8 @@ module Rsa
       isPrime,
       printRsa,
       hexToString,
-      stringToHex
+      stringToHex,
+      modpow
       -- getLastDivider,
       -- getPrimeFactor
     ) where
@@ -62,10 +65,16 @@ egcd a b = (gcd', x, y)
     x = y1 - (b `div` a) * x1
     y = x1
 
-getD :: Integer -> Integer -> Integer
-getD a b = d
+modinv :: Integer -> Integer -> Integer
+modinv a m
+  | gcd' /= 1 = throw WrongPQ
+  | otherwise = d `mod` m
   where
-    (_, d, _) = egcd a b
+    (gcd', d, _) = egcd a m
+  
+
+getD :: Integer -> Integer -> Integer
+getD = modinv
 
 reverseString :: String -> String
 reverseString [] = []
@@ -81,25 +90,31 @@ stringToHex str = strToInt reverseStr
 hexToString :: Integer -> String
 hexToString hex = reverseString $ showHex hex ""
 
-modpow :: Integer -> Integer -> Integer -> Integer -> Integer -> Integer
-modpow b e m c e'
-  | e' < e = modpow b e m newC (e' + 1)
-  | otherwise = newC
+modpow :: Integer -> Integer -> Integer -> Integer
+modpow 0 _ _ = 0
+modpow _ 0 _ = 1
+modpow a b c
+  | b `mod` 2 == 0 = (y' + c) `mod` c
     where
-      newC = (b * c) `mod` m
+      y = modpow a (b `div` 2) c
+      y' = (y * y) `mod` c
+modpow a b c
+  | b `mod` 2 == 1 = (y' + c) `mod` c
+    where
+      y = a `mod` c
+      y' = (y * modpow a (b - 1) c `mod` c) `mod` c
 
 rsaCryption :: RsaKeys -> Integer -> Integer
 rsaCryption (_, n) m
   | m >= n = throw WrongMessage
   | m < 0 = throw WrongMessage
--- rsaCryption (e, n) m = (m ^ e) `mod` n
-rsaCryption (e, n) m = modpow m e n 1 0
+rsaCryption (e, n) m = modpow m e n
 
 rsa :: Integer -> Integer -> (RsaKeys, RsaKeys)
 rsa p q = do
   let n = getN p q
   let ph = phi p q
-  let e = getE 65537 ph
+  let e = getE 257 ph
   let d = getD e ph
   ((e, n), (d, n))
 
