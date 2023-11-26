@@ -1,5 +1,5 @@
 module Args (
-    parseArgs, defaultArgs, checkBlock, handleError, hexToArr, Args (..)
+    parseArgs, defaultArgs, checkBlock, handleError, hexToArr, Args (..), getRsaKeys, RsaKeys, strToInt
     ) where
 ;
 import Control.Exception
@@ -20,8 +20,8 @@ instance Exception ExceptionType
 type CompType = String
 type IsClear = Bool
 type BlockMode = Bool
-type RsaOpts = (Int, Int)
-type RsaKeys = ([Word8], [Word8])
+type RsaOpts = (Integer, Integer)
+type RsaKeys = (Integer, Integer)
 type Key = [Word8]
 
 data Args = Args (Maybe CompType) (Maybe IsClear) (Maybe BlockMode) (Maybe RsaOpts) (Maybe RsaKeys) (Maybe Key)
@@ -68,12 +68,38 @@ parseArg (Args n c Nothing r rk k) "-b" = Args n c (Just True) r rk k
 parseArg _ _ = throw WrongArg
 
 parseArgs :: [String] -> Args -> Args
-parseArgs ("-g": pr: q: xs) (Args n c p _ rk k) = parseArgs xs (Args n c p (Just (read pr :: Int, read q :: Int)) rk k) -- Manage rsa pair
-parseArgs [x] (Args (Just "rsa") (Just c) b r Nothing Nothing) = Args (Just "rsa") (Just c) b r Nothing (Just (hexToArr x)) -- Should parse rsa keys instead of Nothing
-parseArgs [x] (Args (Just "pgp") (Just c) b r Nothing Nothing) = Args (Just "pgp") (Just c) b r Nothing (Just (hexToArr x)) -- Should parse rsa keys instead of Nothing
+parseArgs ("-g": pr: q: xs) (Args n c p _ rk k) = parseArgs xs (Args n c p (Just (read pr :: Integer, read q :: Integer)) rk k) -- Manage rsa pair
+parseArgs [x] (Args (Just "rsa") (Just c) b r Nothing Nothing) = Args (Just "rsa") (Just c) b r (Just (getRsaKeys x)) (Just (hexToArr x)) -- Should parse rsa keys instead of Nothing
+parseArgs [x] (Args (Just "pgp") (Just c) b r Nothing Nothing) = Args (Just "pgp") (Just c) b r (Just (getRsaKeys x)) (Just (hexToArr x)) -- Should parse rsa keys instead of Nothing
 parseArgs [x] (Args (Just n) (Just c) b r rk Nothing) = Args (Just n) (Just c) b r rk (Just (hexToArr x))
 parseArgs (x: xs) arg = parseArgs xs (parseArg arg x)
 parseArgs _ (Args Nothing _ _ _ _ _ ) = throw MissingRule
 parseArgs _ (Args _ Nothing _ _ _ _ ) = throw MissingRule
 parseArgs _ (Args (Just "rsa") _ _ Nothing  _ _) = throw MissingRule
 parseArgs _ arg = arg
+
+getFirstRsaKey :: String -> String
+getFirstRsaKey [] = [] 
+getFirstRsaKey [x] = [x] 
+getFirstRsaKey (x:xs)
+  | x == '-' = []
+  | otherwise = x: getFirstRsaKey xs
+
+getSecondRsaKey :: String -> Bool -> String
+getSecondRsaKey [] _ = [] 
+getSecondRsaKey [x] _ = [x] 
+getSecondRsaKey (x:xs) bool
+  | x == '-' = getSecondRsaKey xs True
+  | bool = x: getSecondRsaKey xs True
+  | otherwise = getSecondRsaKey xs False
+
+strToInt :: String -> Integer
+strToInt b = case readHex b of
+    [(n, "")] -> n
+    _ -> throw WrongSplitString
+
+getRsaKeys :: String -> RsaKeys
+getRsaKeys str = (firstRsaKey, secondRsaKey)
+    where
+        firstRsaKey = strToInt $ getFirstRsaKey str
+        secondRsaKey = strToInt $ getSecondRsaKey str False

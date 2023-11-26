@@ -4,12 +4,13 @@ module Main (main) where
 import System.Environment (getArgs)
 import Args (parseArgs, defaultArgs, hexToArr, Args (..), checkBlock, getRsaKeys)
 import Matrix (getMatrix)
-import Rsa (printRsa, rsaCryption)
+import Rsa (printRsa, rsaCryption, rsa, hexToString, stringToHex)
 import Aes (encryptAes, decryptAes)
 import Xor (xorKey)
 import Data.Word (Word8)
 import Text.Printf (printf)
 import System.Random
+import Numeric (showHex)
 
 generateKey :: IO [Word8]
 generateKey = do
@@ -53,8 +54,8 @@ chooseInstruction (Args (Just "pgp") (Just False) block Nothing (Just rsaKey) _)
     encryptedKey <- getLine
     let decryptKey = encryptedKey -- should call rsa decrypt on encrypted key with rsaKey
     printMatrix $ decryptAes (getMatrix decryptKey 4) (getMatrix msg 4)
--- chooseInstruction (Args (Just "rsa") (Just True) _ Nothing (Just key) _) msg = printRsa $ rsaCryption key msg
--- chooseInstruction (Args (Just "rsa") (Just True) _ Nothing _ (Just key)) msg = printRsa $ rsa p q
+chooseInstruction (Args (Just "rsa") (Just True) _ (Just (p, q)) Nothing _) _ = printRsa $ rsa p q
+chooseInstruction (Args (Just "rsa") (Just True) _ Nothing (Just key) _) msg = print $ hexToString $ rsaCryption key $ stringToHex $ concat $ map (\x -> showHex x "") msg
 
 main :: IO ()
 main = do
