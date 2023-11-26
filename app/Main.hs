@@ -17,9 +17,6 @@ generateKey = do
   let keyBytes = take 16 $ randoms gen :: [Word8]
   return keyBytes
 
-printMatrix :: [[Word8]] -> IO ()
-printMatrix = mapM_ $ mapM_ (printf "%02x")
-
 convertStreamMode :: [Word8] -> [Word8] -> Int -> [[Word8]]
 convertStreamMode _ [] _ = []
 convertStreamMode key message keySize = padded : convertStreamMode key remaining keySize
@@ -37,13 +34,25 @@ playStreamMode args message = mapM_ (chooseInstruction args) messageStream
         key = getArgsKey args
         messageStream = convertStreamMode key message (length key)
 
+printMatrix :: [[Word8]] -> IO ()
+printMatrix = mapM_ $ mapM_ (printf "%02x")
+
 chooseInstruction :: Args -> [Word8] -> IO ()
 chooseInstruction (Args (Just "aes") (Just True) _ Nothing _ (Just key)) msg = printMatrix $ encryptAes (getMatrix key 4) (getMatrix msg 4)
 chooseInstruction (Args (Just "aes") (Just False) _ Nothing _ (Just key)) msg = printMatrix $ decryptAes (getMatrix key 4) (getMatrix msg 4)
 chooseInstruction (Args (Just "xor") _ block Nothing _ (Just key)) msg = mapM_ (printf "%02x") $ xorKey key msg msg
-chooseInstruction (Args (Just "pgp") _ block Nothing _ (Just key)) msg = do
+chooseInstruction (Args (Just "pgp") (Just True) block Nothing _ (Just key)) msg = do
     randomKey <- generateKey
     printMatrix $ encryptAes (getMatrix randomKey 4) (getMatrix msg 4)
+    let encryptedKey = randomKey -- should call rsa encrypt with randomKey
+    putStr "\nEncrypted key: "
+    printKey encryptedKey
+        where
+            printKey = mapM_ (printf "%02x")
+chooseInstruction (Args (Just "pgp") (Just False) block Nothing _ (Just key)) msg = do
+    printMatrix $ decryptAes (getMatrix keyDecryptedRsa 4) (getMatrix msg 4)
+        where
+            keyDecryptedRsa = key -- should call rsa decrypt with key
 -- chooseInstruction (Args (Just "rsa") (Just True) _ Nothing (Just key) _) msg = printRsa $ rsaCryption key msg
 -- chooseInstruction (Args (Just "rsa") (Just True) _ Nothing _ (Just key)) msg = printRsa $ rsa p q
 
