@@ -2,8 +2,9 @@
 module Main (main) where
 
 import System.Environment (getArgs)
-import Args (parseArgs, defaultArgs, hexToArr, Args (..), checkBlock)
+import Args (parseArgs, defaultArgs, hexToArr, Args (..), checkBlock, getRsaKeys)
 import Matrix (getMatrix)
+import Rsa (printRsa, rsaCryption)
 import Aes (encryptAes, decryptAes)
 import Xor (xorKey)
 import Data.Word (Word8)
@@ -43,6 +44,8 @@ chooseInstruction (Args (Just "xor") _ block Nothing _ (Just key)) msg = mapM_ (
 chooseInstruction (Args (Just "pgp") _ block Nothing _ (Just key)) msg = do
     randomKey <- generateKey
     printMatrix $ encryptAes (getMatrix randomKey 4) (getMatrix msg 4)
+-- chooseInstruction (Args (Just "rsa") (Just True) _ Nothing (Just key) _) msg = printRsa $ rsaCryption key msg
+-- chooseInstruction (Args (Just "rsa") (Just True) _ Nothing _ (Just key)) msg = printRsa $ rsa p q
 
 main :: IO ()
 main = do
