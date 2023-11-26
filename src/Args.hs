@@ -61,6 +61,7 @@ parseArg :: Args -> String -> Args
 parseArg (Args Nothing c p r rk k) "-xor" = Args (Just "xor") c p r rk k
 parseArg (Args Nothing c p r rk k) "-aes" = Args (Just "aes") c p r rk k
 parseArg (Args Nothing c p r rk k) "-rsa" = Args (Just "rsa") c p r rk k
+parseArg (Args Nothing c p r rk k) "-pgp" = Args (Just "pgp") c p r rk k
 parseArg (Args n Nothing p r rk k) "-c" = Args n (Just True) p r rk k
 parseArg (Args n Nothing p r rk k) "-d" = Args n (Just False) p r rk k
 parseArg (Args n c Nothing r rk k) "-b" = Args n c (Just True) r rk k

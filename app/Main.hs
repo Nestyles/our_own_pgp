@@ -40,6 +40,9 @@ chooseInstruction :: Args -> [Word8] -> IO ()
 chooseInstruction (Args (Just "aes") (Just True) _ Nothing _ (Just key)) msg = printMatrix $ encryptAes (getMatrix key 4) (getMatrix msg 4)
 chooseInstruction (Args (Just "aes") (Just False) _ Nothing _ (Just key)) msg = printMatrix $ decryptAes (getMatrix key 4) (getMatrix msg 4)
 chooseInstruction (Args (Just "xor") _ block Nothing _ (Just key)) msg = mapM_ (printf "%02x") $ xorKey key msg msg
+chooseInstruction (Args (Just "pgp") _ block Nothing _ (Just key)) msg = do
+    randomKey <- generateKey
+    printMatrix $ encryptAes (getMatrix randomKey 4) (getMatrix msg 4)
 
 main :: IO ()
 main = do
